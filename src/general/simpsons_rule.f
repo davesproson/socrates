@@ -13,19 +13,21 @@
       SUBROUTINE SIMPSONS_RULE(N,DELTA,INPUT_ARRAY,RESULT)
 
 
+      USE realtype_rd, ONLY: RealK
+
       IMPLICIT NONE
 
       INTEGER, INTENT(IN) ::
      &     N
 !             Number of data points
 
-      REAL(KIND=KIND(1.0D0)) , INTENT(IN) ::
+      REAL(RealK) , INTENT(IN) ::
      &     DELTA
 !             Size of Interval
      &  ,  INPUT_ARRAY(0:N)
 !             Array being summed over
 
-      REAL(KIND=KIND(1.0D0)) , INTENT(OUT) ::
+      REAL(RealK) , INTENT(OUT) ::
      &     Result
 !             The final sum of all array entries
 
@@ -36,7 +38,7 @@
      &   I
 !            Looping variable
 
-      REAL (KIND=KIND(1.0D0)) ::
+      REAL (RealK) ::
      &    SUM
 !            The sum of the array entries
 

@@ -90,7 +90,7 @@
      &  , I_EXCLUDE
 !           Number of excluded band
 
-      REAL (KIND=KIND(1.0D0)), ALLOCATABLE ::
+      REAL (RealK), ALLOCATABLE ::
      &     WEIGHTS(:)
 !           Weights contained in the filter function
      &  , LAMBDA(:)
@@ -98,7 +98,7 @@
      &  , DUMMY(:)
 !           Dummy_variable
 
-      REAL  (KIND=KIND(1.0D0)) ::
+      REAL  (RealK) ::
      &    LAMBDA_MIN
 !           Smallest Wavelength
      &  , LAMBDA_MAX
@@ -440,6 +440,8 @@
 ! Linear Interpolation: y=c1*y(i)+c2*y(i+1) *
 !********************************************
 
+      USE realtype_rd, ONLY: RealK
+
       IMPLICIT NONE
 
       INTEGER
@@ -450,13 +452,13 @@
      &  , I
 !            Loop variable
 
-      REAL(KIND=KIND(1.0D0)), DIMENSION (0:N_FILTER-1) ::
+      REAL(RealK), DIMENSION (0:N_FILTER-1) ::
      &    WEIGHTS
 !           Filter Function
      &  , LAMBDA
 !           Wavelength
 
-      REAL(KIND=KIND(1.0D0))
+      REAL(RealK)
      &    L
 !            Wavelength at which we require the new weight
      &  , INTERPOLATED

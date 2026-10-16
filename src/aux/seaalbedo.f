@@ -33,7 +33,7 @@
       PARAMETER (temperature=20.0) 
       PARAMETER (vent10=7.0)
 
-      psi = SNGL(zenith)
+      psi = REAL(zenith)
       if (psi .lt. 0.01) psi = 0.01
 
 C     prevent going out of range
@@ -50,7 +50,7 @@ C     prevent going out of range
 C-donne l'indice de refraction de l'eau pure a la l.o. wavelength a 25oC
       CALL m_pure_water(REAL(wavelength,RealK), n_pure_water)
 C-donne l'indice de refraction de l'eau de mer. 
-      CALL m_sea_water(SNGL(n_pure_water), salinity, 
+      CALL m_sea_water(REAL(n_pure_water), salinity, 
      &                 temperature, n_sea_water)
 C-donne le vent aux bonnes altitudes
       CALL vent_z(vent10, 10.0, 12.464, vent41feet)
@@ -66,7 +66,7 @@ C-calcule l'albedo de ce qui remonte
 C-somme les contributions
       albedo = (1.0d0-DBLE(ww))*
      &      (DBLE(rfresnel+rmorel))+DBLE(ww)*DBLE(rmousse)
-      albedo = MIN(albedo, 1.0d0)
+      albedo = MIN(albedo, 1.0_RealK)
       
       RETURN
       END

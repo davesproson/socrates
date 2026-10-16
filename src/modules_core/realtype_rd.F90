@@ -8,12 +8,21 @@
 
 MODULE realtype_rd
 
-  IMPLICIT NONE
+  USE, INTRINSIC :: iso_fortran_env, ONLY: real32, real64
 
-  ! Internal Real precision within Socrates
-  INTEGER, PARAMETER :: RealK=SELECTED_REAL_KIND(15, 307)
+  IMPLICIT NONE
+  PRIVATE
+  PUBLIC :: RealK, RealExt
+
+  ! Internal Real precision within SOCRATES
+  ! (set with -DSOCRATES_PRECISION=32, default 64)
+#if (SOCRATES_PRECISION == 32)
+  INTEGER, PARAMETER :: RealK=real32
+#else
+  INTEGER, PARAMETER :: RealK=real64
+#endif
 
   ! External Real precision for variables passed through the Runes interface
-  INTEGER, PARAMETER :: RealExt=SELECTED_REAL_KIND(15, 307)
+  INTEGER, PARAMETER :: RealExt=real64
 
 END MODULE realtype_rd

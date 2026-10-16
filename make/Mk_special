@@ -1,5 +1,19 @@
 clean:
-	rm -f *.o *.mod
+	rm -f *.o *.mod socrates_precision.stamp
 
 depend:
 	mkdep
+
+# realtype_rd is preprocessed to select the precision of RealK.
+# Set SOCRATES_PRECISION=32 in the environment (or Mk_cmd) for single precision.
+FPPFLAGS        ?= -cpp
+SOCRATES_PRECISION ?= 64
+
+realtype_rd.o: realtype_rd.f90 socrates_precision.stamp
+	$(FORTCOMP) $(FPPFLAGS) -DSOCRATES_PRECISION=$(SOCRATES_PRECISION) realtype_rd.f90
+
+# Rewritten only when SOCRATES_PRECISION changes, forcing a full rebuild
+socrates_precision.stamp: FORCE
+	@echo $(SOCRATES_PRECISION) | cmp -s - $@ || echo $(SOCRATES_PRECISION) > $@
+
+FORCE:
