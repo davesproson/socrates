@@ -4,7 +4,7 @@
 ! which you should have received as part of this distribution.
 ! *****************************COPYRIGHT*******************************
 
-MODULE vectlib_mod
+MODULE svectlib_mod
 
 ! Description:
 !   This routine acts as an interface to vector versions of intrinsic
@@ -266,4 +266,4 @@ END SUBROUTINE asin_v
 
 !-----------------------------------------------------------
 
-END MODULE vectlib_mod
+END MODULE svectlib_mod

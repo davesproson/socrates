@@ -98,7 +98,7 @@ SUBROUTINE solve_band_k_eqv_scl(ierr &
                      ip_two_stream, ip_surf_alb_diff, ip_ir_gauss,      &
                      ip_cloud_mcica, ip_scatter_hybrid, ip_scatter_full
   USE diffusivity_factor, ONLY: diffusivity_factor_minor
-  USE vectlib_mod, ONLY: exp_v
+  USE svectlib_mod, ONLY: exp_v
   USE yomhook, ONLY: lhook, dr_hook
   USE parkind1, ONLY: jprb, jpim
   USE augment_radiance_mod, ONLY: augment_radiance

@@ -31,7 +31,7 @@ SUBROUTINE rescale_continuum(control, n_profile, n_layer, i_continuum   &
                      ip_scale_power_law, ip_scale_power_quad
   USE rad_ccf, ONLY: mol_weight_air, repsilon
   USE def_control, ONLY: StrCtrl
-  USE vectlib_mod, ONLY : rtor_v
+  USE svectlib_mod, ONLY : rtor_v
   USE yomhook, ONLY: lhook, dr_hook
   USE parkind1, ONLY: jprb, jpim
 

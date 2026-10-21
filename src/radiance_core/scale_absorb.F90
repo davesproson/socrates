@@ -31,7 +31,7 @@ SUBROUTINE scale_absorb(ierr, n_profile, n_layer                        &
                      ip_scale_power_quad, ip_scale_doppler_quad,        &
                      ip_scale_dbl_pow_law, ip_scale_fnc_null,           &
                      ip_scale_dbl_pow_quad, ip_scale_wenyi
-  USE vectlib_mod, ONLY : rtor_v
+  USE svectlib_mod, ONLY : rtor_v
   USE scale_wenyi, ONLY: plg, ttb, tto, gk250b, gk4, gk6
   USE yomhook, ONLY: lhook, dr_hook
   USE parkind1, ONLY: jprb, jpim

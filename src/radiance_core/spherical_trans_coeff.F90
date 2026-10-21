@@ -18,7 +18,7 @@ SUBROUTINE spherical_trans_coeff(                                              &
   USE realtype_rd,            ONLY: RealK
   USE def_ss_prop,            ONLY: str_ss_prop
   USE def_spherical_geometry, ONLY: StrSphGeo
-  USE vectlib_mod,            ONLY: exp_v
+  USE svectlib_mod,            ONLY: exp_v
   USE parkind1,               ONLY: jprb, jpim
   USE yomhook,                ONLY: lhook, dr_hook
 

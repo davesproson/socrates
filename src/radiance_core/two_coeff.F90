@@ -32,7 +32,7 @@ SUBROUTINE two_coeff(ierr, control                                      &
 
   USE realtype_rd, ONLY: RealK
   USE rad_pcf, ONLY: ip_solar
-  USE vectlib_mod, ONLY : sqrt_v
+  USE svectlib_mod, ONLY : sqrt_v
   USE yomhook, ONLY: lhook, dr_hook
   USE parkind1, ONLY: jprb, jpim
   USE def_control, ONLY: StrCtrl
