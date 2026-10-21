@@ -2335,8 +2335,8 @@ CONTAINS
         END IF
 
 !       Convert from  cm5 molecule-2  to  m5 kg-2
-        kabs(j) = 1.0E-10_RealK*kabs(j)/ &
-          (molar_weight(i_gas_1)*molar_weight(i_gas_2)*atomic_mass_unit**2)
+        kabs(j) = kabs(j)/ &
+          (molar_weight(i_gas_1)*molar_weight(i_gas_2)*atomic_mass_unit*1.0E10_RealK*atomic_mass_unit)
 
       END IF
 
