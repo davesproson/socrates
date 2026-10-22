@@ -184,20 +184,20 @@ implicit none
   do i=1, n_subcol
     do il=il1, il2
       temp = random_dummy(il)*a+c
-      random_dummy(il) = temp-int(real(temp, RealK)*rm)*m
+      random_dummy(il) = modulo(temp, m)
     end do
   end do
   do i=1, n_subcol
     do il=il1, il2
       temp = random_dummy(il)*a+c
-      random_dummy(il) = temp-int(real(temp, RealK)*rm)*m
+      random_dummy(il) = modulo(temp, m)
       rand_seed_x(il, i) = random_dummy(il)
     end do
   end do
   do i=1, n_subcol
     do il=il1, il2
       temp = random_dummy(il)*a+c
-      random_dummy(il) = temp-int(real(temp, RealK)*rm)*m
+      random_dummy(il) = modulo(temp, m)
       rand_seed_y(il, i) = random_dummy(il)
     end do
   end do
@@ -265,30 +265,30 @@ implicit none
           if (avg_cf(il,k) > 0.0_RealK) then
 
             temp=int_x(il)*a+c
-            int_x(il)=temp-int(real(temp, RealK)*rm)*m
+            int_x(il)=modulo(temp, m)
             x(il)=real(int_x(il), RealK)*rm
 
             temp=int_y(il)*a+c
-            int_y(il)=temp-int(real(temp, RealK)*rm)*m
+            int_y(il)=modulo(temp, m)
             y(il)=real(int_y(il), RealK)*rm
 
             if (k == cloud_top) then
               temp=int_x(il)*a+c
-              int_x(il)=temp-int(real(temp, RealK)*rm)*m
+              int_x(il)=modulo(temp, m)
               x(il)=real(int_x(il), RealK)*rm
 
               temp=int_y(il)*a+c
-              int_y(il)=temp-int(real(temp, RealK)*rm)*m
+              int_y(il)=modulo(temp, m)
               y(il)=real(int_y(il), RealK)*rm
 
             else if (x(il) < (1.0_RealK-avg_cf(il,k-1))) then
               ! It is clear above
               temp=int_x(il)*a+c
-              int_x(il)=temp-int(real(temp, RealK)*rm)*m
+              int_x(il)=modulo(temp, m)
               x1(il)=real(int_x(il), RealK)*rm
 
               temp=int_y(il)*a+c
-              int_y(il)=temp-int(real(temp, RealK)*rm)*m
+              int_y(il)=modulo(temp, m)
               y1(il)=real(int_y(il), RealK)*rm
 
               x(il)=x1(il) * (1.0_RealK - avg_cf(il,k-1))
@@ -387,21 +387,21 @@ implicit none
           if (avg_cf(il,k) > 0.0_RealK) then
 
             temp=int_x(il)*a+c
-            int_x(il)=temp-int(real(temp, RealK)*rm)*m
+            int_x(il)=modulo(temp, m)
             x1(il)=real(int_x(il), RealK)*rm
 
             temp=int_y(il)*a+c
-            int_y(il)=temp-int(real(temp, RealK)*rm)*m
+            int_y(il)=modulo(temp, m)
             y1(il)=real(int_y(il), RealK)*rm
 
             if (x1(il) >= alpha(il,k-1)) then
               temp=int_x(il)*a+c
-              int_x(il)=temp-int(real(temp, RealK)*rm)*m
+              int_x(il)=modulo(temp, m)
               x(il)=real(int_x(il), RealK)*rm
             end if
             if (y1(il) >= rcorr(il,k-1)) then
               temp=int_y(il)*a+c
-              int_y(il)=temp-int(real(temp, RealK)*rm)*m
+              int_y(il)=modulo(temp, m)
               y(il)=real(int_y(il), RealK)*rm
             end if
 
