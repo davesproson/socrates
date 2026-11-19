@@ -14,12 +14,13 @@ CONTAINS
 SUBROUTINE solar_coefficient_basic(control                              &
     , n_profile, i_layer_first, i_layer_last                            &
     , omega, asymmetry, sec_0, path_div                                 &
-    , sum, diff, lambda                                                 &
+    , sum, diff, lambda, lambda_r64                                     &
     , gamma_up, gamma_down                                              &
     , nd_profile, id_lt, id_lb, id_trs_lt, id_trs_lb                    &
     )
 
 
+  USE, INTRINSIC :: iso_fortran_env, ONLY: real64
   USE realtype_rd, ONLY: RealK
   USE rad_pcf, ONLY: i_err_fatal, ip_2s_test, ip_discrete_ord,          &
                      ip_eddington, ip_elsasser, ip_hemi_mean, ip_pifm80,&
@@ -77,8 +78,14 @@ SUBROUTINE solar_coefficient_basic(control                              &
 !       Difference of two-stream coefficients
     , lambda(nd_profile, id_lt: id_lb)
 !       Lambda
-  REAL (RealK), INTENT(OUT) ::                                          &
-      gamma_up(nd_profile, id_lt: id_lb)                                &
+! The coefficients below are held in real64 whatever RealK is. They
+! scale as 1/(lambda-sec_0), and trans_source_coeff subtracts them
+! from each other, so near lambda=sec_0 rounding in RealK=real32
+! would swamp the source terms.
+  REAL (real64), INTENT(OUT) ::                                         &
+      lambda_r64(nd_profile, id_lt: id_lb)                              &
+!       Lambda, consistent with any perturbation of sum and diff
+    , gamma_up(nd_profile, id_lt: id_lb)                                &
 !       Coefficient for upward radiation
     , gamma_down(nd_profile, id_lt: id_lb)
 !       Coefficient for downwad radiation
@@ -90,16 +97,22 @@ SUBROUTINE solar_coefficient_basic(control                              &
 !       Loop variable
     , l
 !       Loop variable
-  REAL (RealK) ::                                                       &
+  REAL (real64) ::                                                      &
       ksi_0(nd_profile, id_lt: id_lb)                                   &
 !       Difference in solar scattering fractions
-    , factor
+    , factor                                                            &
 !       Temporary variable
-  REAL (RealK) ::                                                       &
+    , sum_r64                                                           &
+!       Sum of two-stream coefficients
+    , diff_r64                                                          &
+!       Difference of two-stream coefficients
+    , sec_r64
+!       Secant of the solar zenith angle or scaled path
+  REAL (real64) ::                                                      &
       root_3
 !       Square root of 3
   PARAMETER(                                                            &
-      root_3=1.7320508075688772e+00_RealK                               &
+      root_3=1.7320508075688772e+00_real64                              &
     )
 
 ! Variables related to the treatment of ill-conditioning
@@ -156,13 +169,13 @@ SUBROUTINE solar_coefficient_basic(control                              &
     IF (control%l_spherical_solar) THEN
       DO i=i_layer_first, i_layer_last
         DO l=1, n_profile
-          ksi_0(l, i)=1.5e+00_RealK*asymmetry(l, i)/path_div(l, i)
+          ksi_0(l, i)=1.5e+00_real64*asymmetry(l, i)/path_div(l, i)
         END DO
       END DO
     ELSE
       DO i=i_layer_first, i_layer_last
         DO l=1, n_profile
-          ksi_0(l, i)=1.5e+00_RealK*asymmetry(l, i)/sec_0(l)
+          ksi_0(l, i)=1.5e+00_real64*asymmetry(l, i)/sec_0(l)
         END DO
       END DO
     END IF
@@ -197,23 +210,31 @@ SUBROUTINE solar_coefficient_basic(control                              &
   IF (control%l_spherical_solar) THEN
     DO i=i_layer_first, i_layer_last
       DO l=1, n_profile
-        factor=0.5e+00_RealK*omega(l, i)*path_div(l, i)                 &
-          /((lambda(l, i)-path_div(l, i))*(lambda(l, i)+path_div(l, i)))
-        gamma_up(l, i)=factor*(sum(l, i)-path_div(l, i)                 &
-          -ksi_0(l, i)*(diff(l, i)-path_div(l, i)))
-        gamma_down(l, i)=factor*(sum(l, i)+path_div(l, i)               &
-          +ksi_0(l, i)*(diff(l, i)+path_div(l, i)))
+        sum_r64=REAL(sum(l, i), real64)
+        diff_r64=REAL(diff(l, i), real64)
+        sec_r64=REAL(path_div(l, i), real64)
+        lambda_r64(l, i)=SQRT(sum_r64*diff_r64)
+        factor=0.5e+00_real64*omega(l, i)*sec_r64                       &
+          /((lambda_r64(l, i)-sec_r64)*(lambda_r64(l, i)+sec_r64))
+        gamma_up(l, i)=factor*(sum_r64-sec_r64                          &
+          -ksi_0(l, i)*(diff_r64-sec_r64))
+        gamma_down(l, i)=factor*(sum_r64+sec_r64                        &
+          +ksi_0(l, i)*(diff_r64+sec_r64))
       END DO
     END DO
   ELSE
     DO i=i_layer_first, i_layer_last
       DO l=1, n_profile
-        factor=0.5e+00_RealK*omega(l, i)*sec_0(l)                       &
-          /((lambda(l, i)-sec_0(l))*(lambda(l, i)+sec_0(l)))
-        gamma_up(l, i)=factor*(sum(l, i)-sec_0(l)                       &
-          -ksi_0(l, i)*(diff(l, i)-sec_0(l)))
-        gamma_down(l, i)=factor*(sum(l, i)+sec_0(l)                     &
-          +ksi_0(l, i)*(diff(l, i)+sec_0(l)))
+        sum_r64=REAL(sum(l, i), real64)
+        diff_r64=REAL(diff(l, i), real64)
+        sec_r64=REAL(sec_0(l), real64)
+        lambda_r64(l, i)=SQRT(sum_r64*diff_r64)
+        factor=0.5e+00_real64*omega(l, i)*sec_r64                       &
+          /((lambda_r64(l, i)-sec_r64)*(lambda_r64(l, i)+sec_r64))
+        gamma_up(l, i)=factor*(sum_r64-sec_r64                          &
+          -ksi_0(l, i)*(diff_r64-sec_r64))
+        gamma_down(l, i)=factor*(sum_r64+sec_r64                        &
+          +ksi_0(l, i)*(diff_r64+sec_r64))
       END DO
     END DO
   END IF

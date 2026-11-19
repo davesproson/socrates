@@ -14,6 +14,7 @@
 MODULE def_out
 
 USE realtype_rd, ONLY: RealK
+USE, INTRINSIC :: iso_fortran_env, ONLY: real64
 
 IMPLICIT NONE
 
@@ -21,19 +22,22 @@ IMPLICIT NONE
 TYPE StrOut
 
 ! Fluxes and radiances calculated
-  REAL (RealK), ALLOCATABLE :: flux_direct(:, :, :)
+! The flux totals are always real64: they are accumulated over every
+! k-term of every band, and when RealK is real32 the rounding error
+! of many small increments to a large total is not negligible.
+  REAL (real64), ALLOCATABLE :: flux_direct(:, :, :)
 !   Direct flux
-  REAL (RealK), ALLOCATABLE :: flux_down(:, :, :)
+  REAL (real64), ALLOCATABLE :: flux_down(:, :, :)
 !   Total downward flux
-  REAL (RealK), ALLOCATABLE :: flux_up(:, :, :)
+  REAL (real64), ALLOCATABLE :: flux_up(:, :, :)
 !   Upward flux
   REAL (RealK), ALLOCATABLE :: flux_div(:, :, :)
 !   Flux divergence
-  REAL (RealK), ALLOCATABLE :: flux_direct_clear(:, :, :)
+  REAL (real64), ALLOCATABLE :: flux_direct_clear(:, :, :)
 !   Clear-sky direct flux
-  REAL (RealK), ALLOCATABLE :: flux_down_clear(:, :, :)
+  REAL (real64), ALLOCATABLE :: flux_down_clear(:, :, :)
 !   Clear-sky downward flux
-  REAL (RealK), ALLOCATABLE :: flux_up_clear(:, :, :)
+  REAL (real64), ALLOCATABLE :: flux_up_clear(:, :, :)
 !   Clear-sky upward flux
   REAL (RealK), ALLOCATABLE :: flux_div_clear(:, :, :)
 !   Clear-sky flux divergence

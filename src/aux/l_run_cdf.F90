@@ -1514,7 +1514,7 @@ END IF
       atm%p, atm%p_level,                                               &
       n_channel,                                                        &
       flux_total, flux_diffuse_down,                                    &
-      radout%flux_up, flux_net,                                         &
+      REAL(radout%flux_up, RealK), flux_net,                            &
       flux_direct, actinic_flux, photolysis_rate, heating_rate,         &
       contrib_func_i, contrib_func_f,                                   &
       dimen%nd_profile, npd_latitude, npd_longitude, dimen%nd_layer,    &

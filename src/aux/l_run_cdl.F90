@@ -1145,9 +1145,9 @@ END IF
       trim(name_vert_coord), len(trim(name_vert_coord)),                &
       atm%p, atm%p_level,                                               &
       n_channel,                                                        &
-      radout%flux_down, flux_diffuse_down,                              &
-      radout%flux_up, flux_net,                                         &
-      radout%flux_direct, heating_rate,                                 &
+      REAL(radout%flux_down, RealK), flux_diffuse_down,                 &
+      REAL(radout%flux_up, RealK), flux_net,                            &
+      REAL(radout%flux_direct, RealK), heating_rate,                    &
       contrib_func_i, contrib_func_f,                                   &
       dimen%nd_profile, npd_latitude, npd_longitude, dimen%nd_layer,    &
       dimen%nd_channel,                                                 &

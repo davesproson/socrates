@@ -31,6 +31,7 @@ use def_bound,    only: StrBound
 use def_out,      only: StrOut
 
 use realtype_rd, only: RealK, RealExt
+use, intrinsic :: iso_fortran_env, only: real64
 use rad_pcf, only: ip_cloud_off, ip_mcica, &
   ip_clcmp_st_water, ip_clcmp_st_ice, ip_clcmp_cnv_water, ip_clcmp_cnv_ice, &
   ip_ice_adt, ip_ice_agg_de, ip_ice_agg_de_sun, ip_ice_baran
@@ -551,7 +552,7 @@ subroutine sum_flux_channels(field, field_channels, surf, toa)
   implicit none
   
   real(RealExt), intent(inout), pointer :: field(:, :)
-  real(RealK), intent(in), allocatable :: field_channels(:, :, :)
+  real(real64), intent(in), allocatable :: field_channels(:, :, :)
   real(RealExt), intent(inout), optional, pointer :: surf(:)
   real(RealExt), intent(inout), optional, pointer :: toa(:)
   

@@ -30,6 +30,7 @@ SUBROUTINE two_coeff(ierr, control                                      &
      )
 
 
+  USE, INTRINSIC :: iso_fortran_env, ONLY: real64
   USE realtype_rd, ONLY: RealK
   USE rad_pcf, ONLY: ip_solar
   USE svectlib_mod, ONLY : sqrt_v
@@ -123,8 +124,13 @@ SUBROUTINE two_coeff(ierr, control                                      &
 !       Coefficients in two-stream equations
     , sum(nd_profile, id_op_lt: id_op_lb)                               &
 !       Sum of alpha_1 and alpha_2
-    , diff(nd_profile, id_op_lt: id_op_lb)                              &
+    , diff(nd_profile, id_op_lt: id_op_lb)
 !       Difference of alpha_1 and alpha_2
+
+! Set and used only for the solar source terms:
+  REAL (real64) ::                                                      &
+      lambda_r64(nd_profile, id_op_lt: id_op_lb)                        &
+!       Lambda
     , gamma_up(nd_profile, id_op_lt: id_op_lb)                          &
 !       Basic solar coefficient for upward radiation
     , gamma_down(nd_profile, id_op_lt: id_op_lb)
@@ -169,7 +175,7 @@ SUBROUTINE two_coeff(ierr, control                                      &
     CALL solar_coefficient_basic(control                                &
       , n_profile, i_layer_first, i_layer_last                          &
       , omega, asymmetry, sec_0, path_div                               &
-      , sum, diff, lambda                                               &
+      , sum, diff, lambda, lambda_r64                                   &
       , gamma_up, gamma_down                                            &
       , nd_profile, id_op_lt, id_op_lb, id_trs_lt, id_trs_lb            &
       )
@@ -179,7 +185,7 @@ SUBROUTINE two_coeff(ierr, control                                      &
 ! Determine the transmission and reflection coefficients.
   CALL trans_source_coeff(control                                       &
     , n_profile, i_layer_first, i_layer_last                            &
-    , tau_dir, tau, sum, diff, lambda, sec_0, path_div                  &
+    , tau_dir, tau, sum, diff, lambda, lambda_r64, sec_0, path_div      &
     , gamma_up, gamma_down                                              &
     , trans, reflect, trans_0_dir, trans_0, source_coeff                &
     , nd_profile                                                        &

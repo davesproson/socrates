@@ -13,7 +13,7 @@ CHARACTER(LEN=*), PARAMETER, PRIVATE :: ModuleName = 'TRANS_SOURCE_COEFF_MOD'
 CONTAINS
 SUBROUTINE trans_source_coeff(control, n_profile                        &
      , i_layer_first, i_layer_last                                      &
-     , tau_dir, tau, sum, diff, lambda, sec_0, path_div                 &
+     , tau_dir, tau, sum, diff, lambda, lambda_r64, sec_0, path_div     &
      , gamma_up, gamma_down                                             &
      , trans, reflect, trans_0_dir, trans_0, source_coeff               &
      , nd_profile                                                       &
@@ -22,6 +22,7 @@ SUBROUTINE trans_source_coeff(control, n_profile                        &
      )
 
 
+  USE, INTRINSIC :: iso_fortran_env, ONLY: real64
   USE realtype_rd, ONLY: RealK
   USE rad_pcf, ONLY: ip_infra_red, ip_solar, ip_scf_solar_up,           &
                      ip_scf_solar_down, ip_direct_noscaling,            &
@@ -75,8 +76,14 @@ SUBROUTINE trans_source_coeff(control, n_profile                        &
 !       Lambda
     , sec_0(nd_profile)                                                 &
 !       Secant of solar zenith angle
-    , path_div(nd_profile, id_trs_lt: id_trs_lb)                        &
+    , path_div(nd_profile, id_trs_lt: id_trs_lb)
 !       Path scaling for spherical geometry
+
+! Set only in the solar case, and held in real64 whatever RealK is:
+! see solar_coefficient_basic.
+  REAL (real64), INTENT(IN) ::                                          &
+      lambda_r64(nd_profile, id_op_lt: id_op_lb)                        &
+!       Lambda
     , gamma_up(nd_profile, id_op_lt: id_op_lb)                          &
 !       Basic solar coefficient for upward radiation
     , gamma_down(nd_profile, id_op_lt: id_op_lb)
@@ -113,6 +120,30 @@ SUBROUTINE trans_source_coeff(control, n_profile                        &
 !       Gamma squared
     , exponential2
 !       Exponential squared
+
+! The solar source coefficients are small differences of large terms
+! near lambda=sec_0, so all of these terms are calculated in real64.
+! The transmission and reflection coefficients returned to the solver
+! remain in RealK.
+  REAL (real64) ::                                                      &
+      trans_r64(nd_profile, id_trs_lt: id_trs_lb)                       &
+!       Diffuse transmission coefficient
+    , reflect_r64(nd_profile, id_trs_lt: id_trs_lb)                     &
+!       Diffuse reflection coefficient
+    , trans_0_r64                                                       &
+!       Direct transmission coefficient
+    , sum_r64                                                           &
+!       Sum of alpha_1 and alpha_2
+    , gamma_r64                                                         &
+!       Gamma
+    , gamma2_r64                                                        &
+!       Gamma squared
+    , exponential_r64                                                   &
+!       Exponential of scaled optical depth
+    , exponential2_r64                                                  &
+!       Exponential squared
+    , tmp_inv_r64
+!       Temporary variable
 
 ! Variables related to the treatment of ill-conditioning
   REAL (RealK) ::                                                       &
@@ -172,6 +203,21 @@ SUBROUTINE trans_source_coeff(control, n_profile                        &
 !   top of the layer to give the source terms for the upward
 !   diffuse flux and the total downward flux.
 
+    DO i=i_layer_first, i_layer_last
+      DO l=1, n_profile
+        sum_r64=REAL(sum(l, i), real64)
+        exponential_r64=EXP(-lambda_r64(l, i)*REAL(tau(l, i), real64))
+        exponential2_r64=exponential_r64*exponential_r64
+        gamma_r64=(sum_r64-lambda_r64(l, i))/(sum_r64+lambda_r64(l, i))
+        gamma2_r64=gamma_r64*gamma_r64
+        tmp_inv_r64=1.0_real64/(1.0_real64-exponential2_r64*gamma2_r64)
+        trans_r64(l, i)=exponential_r64*(1.0_real64-gamma2_r64)         &
+          *tmp_inv_r64
+        reflect_r64(l, i)=gamma_r64*(1.0_real64-exponential2_r64)       &
+          *tmp_inv_r64
+      END DO
+    END DO
+
     IF (control%l_spherical_solar) THEN
       DO i=i_layer_first, i_layer_last
         DO l=1, n_profile
@@ -179,12 +225,14 @@ SUBROUTINE trans_source_coeff(control, n_profile                        &
         END DO
         CALL exp_v(n_profile,temp,trans_0(1,i))
         DO l=1, n_profile
-          source_coeff(l, i, ip_scf_solar_up)                           &
-            = gamma_up(l, i)-reflect(l, i)*gamma_down(l, i)             &
-            - gamma_up(l, i)*trans(l, i)*trans_0(l, i)
-          source_coeff(l, i, ip_scf_solar_down)=trans_0(l, i)           &
-            *(gamma_down(l, i)-gamma_up(l, i)*reflect(l, i))            &
-            - gamma_down(l, i)*trans(l, i)
+          trans_0_r64=EXP(-REAL(tau(l, i), real64)                      &
+            *REAL(path_div(l, i), real64))
+          source_coeff(l, i, ip_scf_solar_up)=REAL(                     &
+            gamma_up(l, i)-reflect_r64(l, i)*gamma_down(l, i)           &
+            -gamma_up(l, i)*trans_r64(l, i)*trans_0_r64, RealK)
+          source_coeff(l, i, ip_scf_solar_down)=REAL(trans_0_r64        &
+            *(gamma_down(l, i)-gamma_up(l, i)*reflect_r64(l, i))        &
+            -gamma_down(l, i)*trans_r64(l, i), RealK)
         END DO
       END DO
     ELSE
@@ -201,14 +249,16 @@ SUBROUTINE trans_source_coeff(control, n_profile                        &
           CALL exp_v(n_profile,temp,trans_0_dir(1,i))
         END IF
         DO l=1, n_profile
-          source_coeff(l, i, ip_scf_solar_up)                           &
-            =(gamma_up(l, i)-reflect(l, i)                              &
-            *(1.0_RealK+gamma_down(l, i)))                              &
-            -gamma_up(l, i)*trans(l, i)*trans_0(l, i)
-          source_coeff(l, i, ip_scf_solar_down)=trans_0(l, i)           &
-            *(1.0_RealK+gamma_down(l, i)                                &
-            -gamma_up(l, i)*reflect(l, i))                              &
-            -(1.0_RealK+gamma_down(l, i))*trans(l, i)
+          trans_0_r64=EXP(-REAL(tau(l, i), real64)                      &
+            *REAL(sec_0(l), real64))
+          source_coeff(l, i, ip_scf_solar_up)=REAL(                     &
+            (gamma_up(l, i)-reflect_r64(l, i)                           &
+            *(1.0_real64+gamma_down(l, i)))                             &
+            -gamma_up(l, i)*trans_r64(l, i)*trans_0_r64, RealK)
+          source_coeff(l, i, ip_scf_solar_down)=REAL(trans_0_r64        &
+            *(1.0_real64+gamma_down(l, i)                               &
+            -gamma_up(l, i)*reflect_r64(l, i))                          &
+            -(1.0_real64+gamma_down(l, i))*trans_r64(l, i), RealK)
         END DO
       END DO
     END IF
